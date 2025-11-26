@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Screen } from './types';
 import { Sidebar } from './components/sidebar';
-import { GamePlayScreen } from './components/gamePlayScreen';
+import { ZeroOneGameScreen } from './components/ZeroOneGameScreen';
 import { Home, Target, Clock, TrendingUp } from 'lucide-react'; // ホーム画面用のアイコン
 
 // 他の画面（Home, GameSelect）も同様に components に分けるのが理想ですが、
@@ -42,14 +42,14 @@ const DartsAppDesign = () => {
                     <h2 className="text-3xl font-bold text-white mb-8">ゲームを選択</h2>
                     <button onClick={() => handleStartGame(501)} className="bg-slate-800 p-8 border border-slate-700 rounded hover:border-blue-600 text-left block w-full max-w-lg">
                         <h3 className="text-2xl font-bold text-white">01 Game</h3>
-                        <p className="text-slate-400">501</p>`
+                        <p className="text-slate-400">501</p>
                     </button>
                 </div>
             )}
 
-            {/* ゲームプレイ画面 (分離したコンポーネントを使用) */}
+            {/* 01プレイ画面 */}
             {currentScreen === 'game-play' && (
-                <GamePlayScreen 
+                <ZeroOneGameScreen
                 initialScore={gameStartScore} 
                 onBack={() => setCurrentScreen('game-select')} 
                 />
