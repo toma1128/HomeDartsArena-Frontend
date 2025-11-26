@@ -16,7 +16,7 @@ export const Sidebar = ({ currentScreen, setCurrentScreen }: SidebarProps) => {
                         <Target size={28} className="text-white" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-white">Darts Tracker</h1>
+                        <h1 className="text-xl font-bold text-white">Home Darts Arena</h1>
                     </div>
                 </div>
             </div>
