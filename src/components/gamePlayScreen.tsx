@@ -98,7 +98,7 @@ export const GamePlayScreen = ({ initialScore, onBack }: GamePlayScreenProps) =>
             <div className="max-w-2xl w-full">
                 {/* ... キーパッドなどのJSX ... */}
                 <div className="grid grid-cols-5 gap-2">
-                {['20', '19', '18', '17', '16'].map(num => (
+                {['20', '19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8', '7', '6', '3', '1', '0'].map(num => (
                     <button key={num} onClick={() => handleScoreInput(parseInt(num))} className="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-lg font-bold text-xl">{num}</button>
                 ))}
                 </div>
