@@ -14,6 +14,7 @@ export const ZeroOneGameScreen = ({ initialScore, onBack }: GamePlayScreenProps)
     const [currentDarts, setCurrentDarts] = useState<(number | string)[]>(['?', '?', '?']);
     const [dartIndex, setDartIndex] = useState(0);
     const [roundHistory, setRoundHistory] = useState<RoundHistory[]>([]);
+    const [multiplier, setMultiplier] = useState<1 | 2 | 3>(1);
 
     // 初期化
     useEffect(() => {
@@ -29,13 +30,20 @@ export const ZeroOneGameScreen = ({ initialScore, onBack }: GamePlayScreenProps)
         setDartIndex(0);
     };
 
-    const handleScoreInput = (score: number) => {
+    const handleScoreInput = (baseScore: number) => {
         if (dartIndex >= 3) return;
+        const isBullorZero = baseScore === 0 || baseScore === 50;
+        const finalScore = isBullorZero ? baseScore : baseScore * multiplier;
         const newDarts = [...currentDarts];
-        newDarts[dartIndex] = score;
+        newDarts[dartIndex] = finalScore;
         setCurrentDarts(newDarts);
         setDartIndex(prev => prev + 1);
-        setRemainingScore(prev => prev - score);
+        setRemainingScore(prev => prev - finalScore);
+        setMultiplier(1);
+    };
+
+    const toggleMultiplier = (val: 2 | 3) => {
+        setMultiplier(prev => prev === val ? 1 : val);
     };
 
     const handleDelete = () => {
@@ -48,6 +56,7 @@ export const ZeroOneGameScreen = ({ initialScore, onBack }: GamePlayScreenProps)
         newDarts[dartIndex - 1] = '?';
         setCurrentDarts(newDarts);
         setDartIndex(prev => prev - 1);
+        setMultiplier(1);
     };
 
     const handleNextRound = () => {
@@ -127,36 +136,29 @@ export const ZeroOneGameScreen = ({ initialScore, onBack }: GamePlayScreenProps)
                         <span className="text-4xl font-bold text-white">{currentRoundTotal}</span>
                     </div>
 
-                    {/* キーパッド (抜けていた部分を補完) */}
                     <div className="space-y-3 mb-6 select-none">
                         <div className="grid grid-cols-5 gap-2">
-                            {['20', '19', '18', '17', '16'].map(num => (
-                                <button key={num} onClick={() => handleScoreInput(parseInt(num))} className="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-lg font-bold text-xl">{num}</button>
+                            {['20', '19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1'].map(num => (
+                                <button key={num} onClick={() => handleScoreInput(parseInt(num))} className={`text-white py-4 rounded-lg font-bold text-xl transition-all${multiplier === 3 ? 'bg-yellow-600 hover:bg-yellow-500 ring-2 ring-yellow-300' : multiplier === 2 ? 'bg-red-600 hover:bg-red-500 ring-2 ring-red-300' : 'bg-slate-700 hover:bg-slate-600 active:bg-blue-600'}`}
+                                >
+                                    {num}
+                                </button>
                             ))}
                         </div>
-                        <div className="grid grid-cols-5 gap-2">
-                            {['15', '14', '13', '12', '11'].map(num => (
-                                <button key={num} onClick={() => handleScoreInput(parseInt(num))} className="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-lg font-bold text-xl">{num}</button>
-                            ))}
-                        </div>
-                        <div className="grid grid-cols-5 gap-2">
-                            {['10', '9', '8', '7', '6'].map(num => (
-                                <button key={num} onClick={() => handleScoreInput(parseInt(num))} className="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-lg font-bold text-xl">{num}</button>
-                            ))}
-                        </div>
-                        <div className="grid grid-cols-5 gap-2">
-                            {['5', '4', '3', '2', '1'].map(num => (
-                                <button key={num} onClick={() => handleScoreInput(parseInt(num))} className="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-lg font-bold text-xl">{num}</button>
-                            ))}
-                        </div>
+
                         <div className="grid grid-cols-5 gap-2 mt-4">
-                            <button className="bg-yellow-600 text-white py-4 rounded-lg font-bold text-sm">Triple</button>
-                            <button className="bg-red-600 text-white py-4 rounded-lg font-bold text-sm">Double</button>
+                            {/* Triple Button */}
+                            <button onClick={() => toggleMultiplier(3)} className={`text-white py-4 rounded-lg font-bold text-sm transition-colors${multiplier === 3 ? 'bg-yellow-500 text-black ring-2 ring-white' : 'bg-yellow-600 hover:bg-yellow-500'}`}>
+                                Triple
+                            </button>
+
+                            {/* Double Button */}
+                            <button onClick={() => toggleMultiplier(2)} className={`text-white py-4 rounded-lg font-bold text-sm transition-colors${multiplier === 2 ? 'bg-red-500 ring-2 ring-white' : 'bg-red-600 hover:bg-red-500'}`}>
+                                Double
+                            </button>
+
                             <button onClick={() => handleScoreInput(50)} className="bg-green-600 hover:bg-green-500 text-white py-4 rounded-lg font-bold text-lg">Bull</button>
-
-                            {/* 0ボタンの表示も変えたい場合はここを 'Miss' に変えてもOK */}
                             <button onClick={() => handleScoreInput(0)} className="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-lg font-bold text-lg">0</button>
-
                             <button onClick={handleDelete} className="bg-slate-600 hover:bg-slate-500 text-white py-4 rounded-lg font-semibold">削除</button>
                         </div>
                     </div>
