@@ -11,7 +11,7 @@ export const Sidebar = ({ currentScreen, setCurrentScreen }: SidebarProps) => {
     return (
         <div className="w-64 bg-slate-800 border-r border-slate-700 flex flex-col shrink-0">
             <div className="p-6 border-b border-slate-700">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-2 cursor-pointer hover:opacity-80 transition-opacity"onClick={() => setCurrentScreen('home')}>
                     <div className="bg-blue-600 p-2 rounded-lg">
                         <Target size={28} className="text-white" />
                     </div>
