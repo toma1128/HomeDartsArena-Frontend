@@ -48,7 +48,10 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
         setMultiplier(1);
 
         if (newRemaining < 0) {
-            setRemainingScore(startOfRoundScore); 
+            // バストした場合：点数は戻さない（表示上はバストしたことがわかるようにする）、次のラウンドへ進む準備
+            // ここでは一時的にマイナスにしておくか、あるいは即座にラウンド終了処理へ移行するか
+            // 一般的にはバストしたらそのラウンドは終了なので、dartIndexを3にして入力を止める
+            setRemainingScore(startOfRoundScore); // バスト時はラウンド開始時のスコアに戻すのが一般的
             setGameState('bust');
             setDartIndex(3); 
         } else if (newRemaining === 0) {
@@ -70,9 +73,40 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
         
         if (gameState === 'bust') {
             setGameState('playing');
-            setRemainingScore(startOfRoundScore);
-            resetRound();
-            return;
+            setRemainingScore(startOfRoundScore); // バスト前の状態（ラウンド開始時）に戻す... ではなく、直前のスコア計算が必要だが、簡易的にリセット
+            // 正確には1投前の状態に戻すべきだが、バスト時はstartOfRoundScoreが入っているので、
+            // それを維持しつつ、dartIndexを戻し、currentDartsの最後を消す
+            
+            // バスト直前のスコアを復元するのは少し複雑（履歴を持っていないため）
+            // ここでは「ラウンドやり直し」に近い挙動になるが、バスト解除として処理
+             const newDarts = [...currentDarts];
+             // バストの原因となった投擲を削除
+             // バスト時は dartIndex が 3 になっている可能性がある（強制終了）
+             // 直前の有効な投擲インデックスを探す
+             const lastIndex = currentDarts.findIndex(d => d === '?') - 1;
+             const targetIndex = lastIndex < 0 ? 2 : lastIndex; // 全部埋まってたら2
+
+             const lastScore = currentDarts[targetIndex];
+             // バスト時は remainingScore は既に startOfRoundScore に戻っている
+             // なので、そこから再度引く... ではなく、バストする前の状態（マイナスになる前）に戻したい
+             // しかしマイナスになる前のスコアは保存していない。
+             // 簡易実装として、バスト時は「ラウンドリセット」を推奨するか、
+             // もしくは startOfRoundScore から 現在の有効なダーツ（バストした1投を除く）を引いた値を再計算する
+             
+             // 再計算ロジック
+             let tempScore = startOfRoundScore;
+             for(let i=0; i<targetIndex; i++) {
+                 if (typeof currentDarts[i] === 'number') {
+                     tempScore -= currentDarts[i] as number;
+                 }
+             }
+             setRemainingScore(tempScore);
+             
+             newDarts[targetIndex] = '?';
+             setCurrentDarts(newDarts);
+             setDartIndex(targetIndex);
+             setGameState('playing');
+             return;
         }
 
         const lastScore = currentDarts[dartIndex - 1];
@@ -102,8 +136,11 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
             return;
         }
 
+        // バストしてたら、スコアは既に startOfRoundScore に戻っている
+        // バストしてなければ、今の remainingScore が次のラウンドの開始スコアになる
         if (gameState === 'bust') {
             setGameState('playing');
+            // remainingScore は既に startOfRoundScore になっているのでそのまま
         } else {
             setStartOfRoundScore(remainingScore);
         }
@@ -116,15 +153,18 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
         return typeof val === 'number' ? (acc as number) + val : (acc as number);
     }, 0);
 
-    // 数字ボタンのスタイルを決定する関数
+    // 数字ボタンのスタイル
     const getNumButtonStyle = () => {
-        const baseStyle = "text-white h-14 lg:h-16 rounded-lg font-bold text-xl lg:text-2xl transition-all shadow-md active:scale-95 active:border-b-0 active:translate-y-1 bg-slate-700 hover:bg-slate-600 active:bg-blue-600 border-b-4 border-slate-800";
+        // ベーススタイル: 立体感あり、デフォルト色は落ち着いたグレー
+        const baseStyle = "text-white h-12 lg:h-14 rounded-lg font-bold text-xl lg:text-2xl transition-all shadow-md active:scale-95 active:border-b-0 active:translate-y-1 bg-slate-700 hover:bg-slate-600 border-b-4 border-slate-800";
         
         if (multiplier === 3) {
-            return `${baseStyle} ring-2 ring-yellow-400 ring-offset-2 ring-offset-slate-900 bg-slate-700`;
+            // トリプル選択時: 枠線を黄色に、背景は少し明るく
+            return `${baseStyle} ring-2 ring-yellow-400 ring-offset-2 ring-offset-slate-900 bg-slate-600`;
         }
         if (multiplier === 2) {
-            return `${baseStyle} ring-2 ring-red-500 ring-offset-2 ring-offset-slate-900 bg-slate-700`;
+            // ダブル選択時: 枠線を赤に、背景は少し明るく
+            return `${baseStyle} ring-2 ring-red-500 ring-offset-2 ring-offset-slate-900 bg-slate-600`;
         }
         return baseStyle;
     };
@@ -181,8 +221,9 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                     <div className={`p-4 rounded-lg border transition-colors ${gameState === 'bust' ? 'bg-red-900/20 border-red-500' : 'bg-slate-900 border-slate-700'}`}>
                         <p className="text-slate-400 text-sm mb-1">残りスコア</p>
                         <p className={`text-5xl font-bold text-center ${gameState === 'bust' ? 'text-red-500' : 'text-white'}`}>
-                            {gameState === 'bust' ? 'BUST' : remainingScore}
+                            {remainingScore}
                         </p>
+                        {gameState === 'bust' && <p className="text-red-400 text-center text-sm mt-1">BUST!</p>}
                     </div>
                     
                     <div className="flex-1 overflow-hidden flex flex-col">
@@ -222,9 +263,9 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                         </h3>
 
                         {/* 3投の表示 */}
-                        <div className="grid grid-cols-3 gap-4 lg:gap-6">
+                        <div className="grid grid-cols-3 gap-3 lg:gap-6">
                             {currentDarts.map((dart, i) => (
-                                <div key={i} className={`${dart === '?' ? 'bg-slate-800/50 border-2 border-dashed border-slate-600' : 'bg-blue-900/20 border-2 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]'} rounded-xl p-2 text-center h-24 lg:h-32 flex flex-col justify-center items-center transition-all duration-200`}>
+                                <div key={i} className={`${dart === '?' ? 'bg-slate-800/50 border-2 border-dashed border-slate-600' : 'bg-blue-900/20 border-2 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]'} rounded-xl p-2 text-center h-20 lg:h-32 flex flex-col justify-center items-center transition-all duration-200`}>
                                     <p className="text-slate-400 text-xs mb-1">{i + 1}</p>
                                     <p className={`${dart === '?' ? 'text-slate-500' : (dart === 0 ? 'text-red-400' : 'text-white')} text-3xl lg:text-5xl font-bold tracking-wider`}>
                                         {dart === 0 ? 'MISS' : dart}
@@ -243,31 +284,33 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                     </div>
 
                     {/* 下部: キーパッドエリア */}
-                    <div className={`flex flex-col justify-end gap-3 mt-4 select-none transition-opacity ${gameState !== 'playing' ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <div className={`flex flex-col justify-end gap-3 mt-4 select-none transition-opacity ${gameState !== 'playing' && gameState !== 'bust' ? 'opacity-50 pointer-events-none' : ''}`}>
                         
-                        {/* 数字キー: gapを広げて押しやすく */}
                         <div className="grid grid-cols-5 gap-3 lg:gap-4">
                             {['20', '19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1'].map(num => (
                                 <button 
                                     key={num} 
                                     onClick={() => handleScoreInput(parseInt(num))} 
-                                    className={getNumButtonStyle()}
+                                    // バスト時は数字ボタンを押せないようにする
+                                    disabled={gameState === 'bust'}
+                                    className={`${getNumButtonStyle()} ${gameState === 'bust' ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     {num}
                                 </button>
                             ))}
                         </div>
                         
-                        {/* 機能キー: こちらも立体感を復活 */}
                         <div className="grid grid-cols-5 gap-3 lg:gap-4">
                             {/* Triple */}
                             <button 
                                 onClick={() => toggleMultiplier(3)} 
+                                disabled={gameState === 'bust'}
                                 className={`
-                                    h-12 lg:h-16 text-white rounded-lg font-bold text-sm lg:text-base transition-all shadow-md active:scale-95 active:border-b-0 active:translate-y-1
+                                    h-12 lg:h-14 text-white rounded-lg font-bold text-sm lg:text-base transition-all shadow-md active:scale-95 active:border-b-0 active:translate-y-1
                                     ${multiplier === 3 
                                         ? 'bg-yellow-500 text-black border-b-4 border-yellow-700 transform translate-y-1 border-b-0 shadow-inner' 
                                         : 'bg-yellow-600 hover:bg-yellow-500 border-b-4 border-yellow-800'}
+                                    ${gameState === 'bust' ? 'opacity-50 cursor-not-allowed' : ''}
                                 `}
                             >
                                 Triple
@@ -276,19 +319,21 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                             {/* Double */}
                             <button 
                                 onClick={() => toggleMultiplier(2)} 
+                                disabled={gameState === 'bust'}
                                 className={`
-                                    h-12 lg:h-16 text-white rounded-lg font-bold text-sm lg:text-base transition-all shadow-md active:scale-95 active:border-b-0 active:translate-y-1
+                                    h-12 lg:h-14 text-white rounded-lg font-bold text-sm lg:text-base transition-all shadow-md active:scale-95 active:border-b-0 active:translate-y-1
                                     ${multiplier === 2 
                                         ? 'bg-red-500 border-b-4 border-red-700 transform translate-y-1 border-b-0 shadow-inner' 
                                         : 'bg-red-600 hover:bg-red-500 border-b-4 border-red-800'}
+                                    ${gameState === 'bust' ? 'opacity-50 cursor-not-allowed' : ''}
                                 `}
                             >
                                 Double
                             </button>
 
-                            <button onClick={() => handleScoreInput(50)} className="h-12 lg:h-16 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-green-800 active:border-b-0 active:translate-y-1 shadow-md">Bull</button>
-                            <button onClick={() => handleScoreInput(0)} className="h-12 lg:h-16 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-md">0</button>
-                            <button onClick={handleDelete} className="h-12 lg:h-16 bg-slate-600 hover:bg-slate-500 text-white rounded-lg font-semibold border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-md">削除</button>
+                            <button onClick={() => handleScoreInput(50)} disabled={gameState === 'bust'} className={`h-12 lg:h-14 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-green-800 active:border-b-0 active:translate-y-1 shadow-md ${gameState === 'bust' ? 'opacity-50 cursor-not-allowed' : ''}`}>Bull</button>
+                            <button onClick={() => handleScoreInput(0)} disabled={gameState === 'bust'} className={`h-12 lg:h-14 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-md ${gameState === 'bust' ? 'opacity-50 cursor-not-allowed' : ''}`}>0</button>
+                            <button onClick={handleDelete} className="h-12 lg:h-14 bg-slate-600 hover:bg-slate-500 text-white rounded-lg font-semibold border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-md">削除</button>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 lg:gap-8 mt-2">
