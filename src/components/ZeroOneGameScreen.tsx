@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, RotateCcw, Trophy } from 'lucide-react';
 import type { RoundHistory } from '../types';
 
@@ -28,6 +28,24 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
         setMultiplier(1);
         setGameState('playing');
     }, [initialScore]);
+
+    // スタッツ (PPR: Points Per Round) の計算
+    const pointsPerRound = useMemo(() => {
+        let totalDarts = roundHistory.reduce((count, round) => {
+            return count + round.scores.filter(s => s !== '?').length;
+        }, 0);
+
+        const isCurrentRoundInHistory = roundHistory.some(r => r.round === currentRound);
+        if (!isCurrentRoundInHistory) {
+            totalDarts += dartIndex;
+        }
+
+        if (totalDarts === 0) return "0.00";
+
+        const totalScore = initialScore - remainingScore;
+        // PPR = (総得点 / 総ダーツ数) * 3
+        return ((totalScore / totalDarts) * 3).toFixed(2);
+    }, [remainingScore, roundHistory, dartIndex, initialScore, currentRound]);
 
     const resetRound = () => {
         setCurrentDarts(['?', '?', '?']);
@@ -129,27 +147,45 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
     };
 
     return (
-        // ★修正: h-full を h-screen に変更し、overflow-hidden を追加して画面からはみ出さないように強制
         <div className="flex h-screen w-full relative overflow-hidden">
             {/* 結果モーダル */}
             {(gameState === 'finished' || gameState === 'gameover') && (
-                <div className="absolute inset-0 bg-slate-900/90 z-50 flex flex-col items-center justify-center animate-in fade-in duration-300">
-                    <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl text-center max-w-md w-full mx-4">
+                <div className="absolute inset-0 bg-slate-900/95 z-50 flex flex-col items-center justify-center animate-in fade-in duration-300 p-4">
+                    <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl text-center max-w-md w-full">
                         {gameState === 'finished' ? (
                             <>
-                                <Trophy size={64} className="text-yellow-400 mx-auto mb-4" />
-                                <h2 className="text-4xl font-bold text-white mb-2">GAME CLEAR!</h2>
-                                <p className="text-slate-400 mb-6">Total Rounds: <span className="text-white font-bold text-xl">{currentRound}</span></p>
+                                <div className="mb-6 inline-block bg-yellow-500/20 p-4 rounded-full">
+                                    <Trophy size={64} className="text-yellow-400" />
+                                </div>
+                                <h2 className="text-4xl font-bold text-white mb-2 tracking-wide">GAME CLEAR!</h2>
                             </>
                         ) : (
                             <>
-                                <h2 className="text-4xl font-bold text-slate-400 mb-2">GAME OVER</h2>
+                                <h2 className="text-4xl font-bold text-slate-400 mb-2 tracking-wide">GAME OVER</h2>
                                 <p className="text-slate-500 mb-6">ラウンド制限に達しました</p>
                             </>
                         )}
+
+                        {/* リザルト表示エリア */}
+                        <div className="bg-slate-900/50 rounded-xl p-6 mb-8 grid grid-cols-2 gap-4 border border-slate-700/50">
+                            <div className="flex flex-col items-center justify-center border-r border-slate-700/50">
+                                <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider">残りスコア</p>
+                                <p className="text-4xl font-bold text-white font-mono">{remainingScore}</p>
+                            </div>
+                            <div className="flex flex-col items-center justify-center">
+                                <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider">スタッツ (PPR)</p>
+                                <p className="text-4xl font-bold text-white font-mono">{pointsPerRound}</p>
+                            </div>
+                            <div className="col-span-2 border-t border-slate-700/50 pt-4 mt-2">
+                                <p className="text-slate-500 text-xs uppercase mb-1">Total Rounds</p>
+                                <p className="text-xl font-bold text-slate-300">
+                                    {currentRound} <span className="text-sm font-normal text-slate-600">/ {maxRounds}</span>
+                                </p>
+                            </div>
+                        </div>
                         
                         <div className="grid grid-cols-2 gap-4">
-                            <button onClick={onBack} className="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-lg font-semibold">
+                            <button onClick={onBack} className="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95">
                                 メニューへ
                             </button>
                             <button onClick={() => {
@@ -159,8 +195,8 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                                 setRoundHistory([]);
                                 resetRound();
                                 setGameState('playing');
-                            }} className="bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2">
-                                <RotateCcw size={18} /> もう一度
+                            }} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/30 active:scale-95">
+                                <RotateCcw size={20} /> もう一度
                             </button>
                         </div>
                     </div>
@@ -168,7 +204,6 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
             )}
 
             {/* 左サイドバー */}
-            {/* ★修正: h-full flex flex-col overflow-hidden で高さを固定 */}
             <div className="w-72 lg:w-80 bg-slate-800 border-r border-slate-700 p-4 lg:p-6 flex flex-col h-full overflow-hidden shrink-0">
                 <div className="mb-4 lg:mb-6 shrink-0">
                     <button onClick={onBack} className="flex items-center text-slate-400 hover:text-white mb-4 transition-colors">
@@ -186,11 +221,9 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                     {gameState === 'bust' && <p className="text-red-400 text-center text-sm mt-1">BUST!</p>}
                 </div>
                 
-                {/* 履歴エリア: 残りの高さを埋めてスクロール */}
                 <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                     <h4 className="text-white font-semibold mb-2 text-sm shrink-0">履歴</h4>
-                    {/* ★修正: overflow-y-auto でここだけスクロール */}
-                    <div className="space-y-2 overflow-y-auto flex-1 pr-2">
+                    <div className="space-y-2 overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
                         {roundHistory.map((item, i) => (
                         <div key={i} className="bg-slate-700/50 p-3 rounded-lg border border-slate-700 flex justify-between items-center shrink-0">
                             <div>
