@@ -117,7 +117,6 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
     }, 0);
 
     return (
-        // ★修正: ここに w-full を追加しました
         <div className="flex h-full w-full relative">
             {/* 結果モーダル */}
             {(gameState === 'finished' || gameState === 'gameover') && (
@@ -156,8 +155,8 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
             )}
 
             {/* 左サイドバー */}
-            <div className="w-72 lg:w-96 bg-slate-800 border-r border-slate-700 p-6 overflow-auto shrink-0 flex flex-col">
-                <div className="mb-6">
+            <div className="w-72 lg:w-80 bg-slate-800 border-r border-slate-700 p-4 lg:p-6 overflow-auto shrink-0 flex flex-col">
+                <div className="mb-4 lg:mb-6">
                     <button onClick={onBack} className="flex items-center text-slate-400 hover:text-white mb-4 transition-colors">
                         <ArrowLeft size={20} className="mr-2" /> ゲーム選択に戻る
                     </button>
@@ -165,7 +164,7 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                     <p className="text-slate-500 text-sm">Limit: {maxRounds} Rounds</p>
                 </div>
                 
-                <div className="space-y-4 mb-6">
+                <div className="space-y-4 mb-4 lg:mb-6">
                     <div className={`p-4 rounded-lg border transition-colors ${gameState === 'bust' ? 'bg-red-900/20 border-red-500' : 'bg-slate-900 border-slate-700'}`}>
                         <p className="text-slate-400 text-sm mb-1">残りスコア</p>
                         <p className={`text-5xl font-bold text-center ${gameState === 'bust' ? 'text-red-500' : 'text-white'}`}>
@@ -197,46 +196,50 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
             </div>
 
             {/* メインエリア */}
-            <div className="flex-1 p-6 lg:p-10 overflow-auto flex flex-col bg-slate-900">
-                <div className="max-w-full w-full h-full flex flex-col">
+            <div className="flex-1 p-4 lg:p-6 overflow-hidden flex flex-col bg-slate-900">
+                <div className="max-w-full w-full h-full flex flex-col justify-between">
                     
-                    <h3 className="text-2xl font-bold text-white mb-6 flex justify-between items-end">
-                        <span>Round {currentRound} <span className="text-slate-500 text-lg">/ {maxRounds}</span></span>
-                        <span className="text-slate-400 text-base lg:text-lg bg-slate-800 px-4 py-1 rounded-full border border-slate-700">
-                            {dartIndex < 3 ? `${dartIndex + 1}投目` : 'ラウンド終了'}
-                        </span>
-                    </h3>
+                    {/* 上部: 情報エリア (高さを圧縮) */}
+                    <div className="flex flex-col gap-4">
+                        <h3 className="text-xl lg:text-2xl font-bold text-white flex justify-between items-end">
+                            <span>Round {currentRound} <span className="text-slate-500 text-base lg:text-lg">/ {maxRounds}</span></span>
+                            <span className="text-slate-400 text-sm lg:text-base bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                                {dartIndex < 3 ? `${dartIndex + 1}投目` : '完了'}
+                            </span>
+                        </h3>
 
-                    {/* 3投の表示 */}
-                    <div className="grid grid-cols-3 gap-4 lg:gap-8 mb-6 lg:mb-10">
-                        {currentDarts.map((dart, i) => (
-                            <div key={i} className={`${dart === '?' ? 'bg-slate-800/50 border-2 border-dashed border-slate-600' : 'bg-blue-900/20 border-2 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]'} rounded-2xl p-4 text-center h-28 lg:h-40 flex flex-col justify-center items-center transition-all duration-200`}>
-                                <p className="text-slate-400 text-xs lg:text-sm mb-2">{i + 1}</p>
-                                <p className={`${dart === '?' ? 'text-slate-500' : (dart === 0 ? 'text-red-400' : 'text-white')} text-4xl lg:text-6xl font-bold tracking-wider`}>
-                                    {dart === 0 ? 'MISS' : dart}
-                                </p>
-                            </div>
-                        ))}
+                        {/* 3投の表示 (高さを少し小さく) */}
+                        <div className="grid grid-cols-3 gap-3 lg:gap-6">
+                            {currentDarts.map((dart, i) => (
+                                <div key={i} className={`${dart === '?' ? 'bg-slate-800/50 border-2 border-dashed border-slate-600' : 'bg-blue-900/20 border-2 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]'} rounded-xl p-2 text-center h-20 lg:h-32 flex flex-col justify-center items-center transition-all duration-200`}>
+                                    <p className="text-slate-400 text-xs mb-1">{i + 1}</p>
+                                    <p className={`${dart === '?' ? 'text-slate-500' : (dart === 0 ? 'text-red-400' : 'text-white')} text-3xl lg:text-5xl font-bold tracking-wider`}>
+                                        {dart === 0 ? 'MISS' : dart}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* 現在のラウンド合計 */}
+                        <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 lg:p-4 text-center flex justify-between items-center px-6 shadow-lg">
+                            <span className="text-blue-300 font-medium">Total</span>
+                            <span className="text-3xl lg:text-4xl font-bold text-white">
+                                {gameState === 'bust' ? 'BUST' : currentRoundTotal}
+                            </span>
+                        </div>
                     </div>
 
-                    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 lg:p-5 text-center mb-6 lg:mb-10 flex justify-between items-center px-8 shadow-lg">
-                        <span className="text-blue-300 font-medium text-lg">Current Round Total</span>
-                        <span className="text-4xl lg:text-5xl font-bold text-white">
-                            {gameState === 'bust' ? 'BUST' : currentRoundTotal}
-                        </span>
-                    </div>
-
-                    {/* キーパッド */}
-                    <div className={`flex-1 flex flex-col justify-end space-y-3 lg:space-y-4 select-none transition-opacity ${gameState !== 'playing' ? 'opacity-50 pointer-events-none' : ''}`}>
-                        <div className="grid grid-cols-5 gap-3 lg:gap-4">
+                    {/* 下部: キーパッドエリア (flex-1で残りスペースを使う) */}
+                    <div className={`flex flex-col justify-end gap-3 mt-4 select-none transition-opacity ${gameState !== 'playing' ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <div className="grid grid-cols-5 gap-2 lg:gap-3">
                             {['20', '19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1'].map(num => (
                                 <button 
                                     key={num} 
                                     onClick={() => handleScoreInput(parseInt(num))} 
                                     className={`
-                                        text-white h-14 lg:h-20 rounded-xl font-bold text-xl lg:text-3xl transition-all shadow-md active:scale-95
-                                        ${multiplier === 3 ? 'bg-yellow-600 hover:bg-yellow-500 ring-4 ring-yellow-500/30 z-10 scale-105' : 
-                                          multiplier === 2 ? 'bg-red-600 hover:bg-red-500 ring-4 ring-red-500/30 z-10 scale-105' : 
+                                        text-white h-12 lg:h-16 rounded-lg font-bold text-xl lg:text-2xl transition-all shadow-sm active:scale-95
+                                        ${multiplier === 3 ? 'bg-yellow-600 hover:bg-yellow-500 ring-2 ring-yellow-500/50 z-10 scale-105' : 
+                                          multiplier === 2 ? 'bg-red-600 hover:bg-red-500 ring-2 ring-red-500/50 z-10 scale-105' : 
                                           'bg-slate-700 hover:bg-slate-600 active:bg-blue-600 border-b-4 border-slate-800 active:border-b-0 active:translate-y-1'}
                                     `}
                                 >
@@ -245,22 +248,22 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                             ))}
                         </div>
                         
-                        <div className="grid grid-cols-5 gap-3 lg:gap-4">
-                            <button onClick={() => toggleMultiplier(3)} className={`h-14 lg:h-20 text-white rounded-xl font-bold text-sm lg:text-lg transition-colors shadow-md ${multiplier === 3 ? 'bg-yellow-500 text-black ring-2 ring-white scale-95' : 'bg-yellow-700 hover:bg-yellow-600 border-b-4 border-yellow-900 active:border-b-0 active:translate-y-1'}`}>Triple</button>
-                            <button onClick={() => toggleMultiplier(2)} className={`h-14 lg:h-20 text-white rounded-xl font-bold text-sm lg:text-lg transition-colors shadow-md ${multiplier === 2 ? 'bg-red-500 ring-2 ring-white scale-95' : 'bg-red-700 hover:bg-red-600 border-b-4 border-red-900 active:border-b-0 active:translate-y-1'}`}>Double</button>
-                            <button onClick={() => handleScoreInput(50)} className="h-14 lg:h-20 bg-green-700 hover:bg-green-600 text-white rounded-xl font-bold text-lg lg:text-xl border-b-4 border-green-900 active:border-b-0 active:translate-y-1 shadow-md">Bull</button>
-                            <button onClick={() => handleScoreInput(0)} className="h-14 lg:h-20 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold text-lg lg:text-xl border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-md">0</button>
-                            <button onClick={handleDelete} className="h-14 lg:h-20 bg-slate-600 hover:bg-slate-500 text-white rounded-xl font-semibold border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-md">削除</button>
+                        <div className="grid grid-cols-5 gap-2 lg:gap-3">
+                            <button onClick={() => toggleMultiplier(3)} className={`h-12 lg:h-16 text-white rounded-lg font-bold text-sm lg:text-base transition-colors shadow-sm ${multiplier === 3 ? 'bg-yellow-500 text-black ring-2 ring-white scale-95' : 'bg-yellow-700 hover:bg-yellow-600 border-b-4 border-yellow-900 active:border-b-0 active:translate-y-1'}`}>Triple</button>
+                            <button onClick={() => toggleMultiplier(2)} className={`h-12 lg:h-16 text-white rounded-lg font-bold text-sm lg:text-base transition-colors shadow-sm ${multiplier === 2 ? 'bg-red-500 ring-2 ring-white scale-95' : 'bg-red-700 hover:bg-red-600 border-b-4 border-red-900 active:border-b-0 active:translate-y-1'}`}>Double</button>
+                            <button onClick={() => handleScoreInput(50)} className="h-12 lg:h-16 bg-green-700 hover:bg-green-600 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-green-900 active:border-b-0 active:translate-y-1 shadow-sm">Bull</button>
+                            <button onClick={() => handleScoreInput(0)} className="h-12 lg:h-16 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-sm">0</button>
+                            <button onClick={handleDelete} className="h-12 lg:h-16 bg-slate-600 hover:bg-slate-500 text-white rounded-lg font-semibold border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-sm">削除</button>
                         </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4 lg:gap-8 w-full mt-6">
-                        <button onClick={() => { resetRound(); setRemainingScore(startOfRoundScore); setGameState('playing'); }} className="bg-slate-700 hover:bg-slate-600 text-white h-14 lg:h-16 rounded-xl font-semibold text-lg transition-colors">
-                            ラウンドやり直し
-                        </button>
-                        <button onClick={handleNextRound} disabled={dartIndex < 3 && gameState === 'playing'} className="bg-blue-600 hover:bg-blue-500 text-white h-14 lg:h-16 rounded-xl font-bold text-lg shadow-lg shadow-blue-900/50 transition-transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
-                            {gameState === 'finished' ? '結果を見る' : '次のラウンドへ'}
-                        </button>
+                        <div className="grid grid-cols-2 gap-3 lg:gap-6 mt-2">
+                            <button onClick={() => { resetRound(); setRemainingScore(startOfRoundScore); setGameState('playing'); }} className="bg-slate-700 hover:bg-slate-600 text-white h-12 lg:h-14 rounded-lg font-semibold text-base transition-colors">
+                                ラウンドやり直し
+                            </button>
+                            <button onClick={handleNextRound} disabled={dartIndex < 3 && gameState === 'playing'} className="bg-blue-600 hover:bg-blue-500 text-white h-12 lg:h-14 rounded-lg font-bold text-base shadow-lg shadow-blue-900/50 transition-transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                                {gameState === 'finished' ? '結果を見る' : '次のラウンドへ'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
