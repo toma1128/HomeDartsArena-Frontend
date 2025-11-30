@@ -116,6 +116,19 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
         return typeof val === 'number' ? (acc as number) + val : (acc as number);
     }, 0);
 
+    // 数字ボタンのスタイルを決定する関数
+    const getNumButtonStyle = () => {
+        const baseStyle = "text-white h-14 lg:h-16 rounded-lg font-bold text-xl lg:text-2xl transition-all shadow-md active:scale-95 active:border-b-0 active:translate-y-1 bg-slate-700 hover:bg-slate-600 active:bg-blue-600 border-b-4 border-slate-800";
+        
+        if (multiplier === 3) {
+            return `${baseStyle} ring-2 ring-yellow-400 ring-offset-2 ring-offset-slate-900 bg-slate-700`;
+        }
+        if (multiplier === 2) {
+            return `${baseStyle} ring-2 ring-red-500 ring-offset-2 ring-offset-slate-900 bg-slate-700`;
+        }
+        return baseStyle;
+    };
+
     return (
         <div className="flex h-full w-full relative">
             {/* 結果モーダル */}
@@ -199,7 +212,7 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
             <div className="flex-1 p-4 lg:p-6 overflow-hidden flex flex-col bg-slate-900">
                 <div className="max-w-full w-full h-full flex flex-col justify-between">
                     
-                    {/* 上部: 情報エリア (高さを圧縮) */}
+                    {/* 上部: 情報エリア */}
                     <div className="flex flex-col gap-4">
                         <h3 className="text-xl lg:text-2xl font-bold text-white flex justify-between items-end">
                             <span>Round {currentRound} <span className="text-slate-500 text-base lg:text-lg">/ {maxRounds}</span></span>
@@ -208,10 +221,10 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                             </span>
                         </h3>
 
-                        {/* 3投の表示 (高さを少し小さく) */}
-                        <div className="grid grid-cols-3 gap-3 lg:gap-6">
+                        {/* 3投の表示 */}
+                        <div className="grid grid-cols-3 gap-4 lg:gap-6">
                             {currentDarts.map((dart, i) => (
-                                <div key={i} className={`${dart === '?' ? 'bg-slate-800/50 border-2 border-dashed border-slate-600' : 'bg-blue-900/20 border-2 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]'} rounded-xl p-2 text-center h-20 lg:h-32 flex flex-col justify-center items-center transition-all duration-200`}>
+                                <div key={i} className={`${dart === '?' ? 'bg-slate-800/50 border-2 border-dashed border-slate-600' : 'bg-blue-900/20 border-2 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]'} rounded-xl p-2 text-center h-24 lg:h-32 flex flex-col justify-center items-center transition-all duration-200`}>
                                     <p className="text-slate-400 text-xs mb-1">{i + 1}</p>
                                     <p className={`${dart === '?' ? 'text-slate-500' : (dart === 0 ? 'text-red-400' : 'text-white')} text-3xl lg:text-5xl font-bold tracking-wider`}>
                                         {dart === 0 ? 'MISS' : dart}
@@ -229,38 +242,60 @@ export const ZeroOneGameScreen = ({ initialScore, maxRounds = 15, onBack }: Zero
                         </div>
                     </div>
 
-                    {/* 下部: キーパッドエリア (flex-1で残りスペースを使う) */}
+                    {/* 下部: キーパッドエリア */}
                     <div className={`flex flex-col justify-end gap-3 mt-4 select-none transition-opacity ${gameState !== 'playing' ? 'opacity-50 pointer-events-none' : ''}`}>
-                        <div className="grid grid-cols-5 gap-2 lg:gap-3">
+                        
+                        {/* 数字キー: gapを広げて押しやすく */}
+                        <div className="grid grid-cols-5 gap-3 lg:gap-4">
                             {['20', '19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1'].map(num => (
                                 <button 
                                     key={num} 
                                     onClick={() => handleScoreInput(parseInt(num))} 
-                                    className={`
-                                        text-white h-12 lg:h-16 rounded-lg font-bold text-xl lg:text-2xl transition-all shadow-sm active:scale-95
-                                        ${multiplier === 3 ? 'bg-yellow-600 hover:bg-yellow-500 ring-2 ring-yellow-500/50 z-10 scale-105' : 
-                                          multiplier === 2 ? 'bg-red-600 hover:bg-red-500 ring-2 ring-red-500/50 z-10 scale-105' : 
-                                          'bg-slate-700 hover:bg-slate-600 active:bg-blue-600 border-b-4 border-slate-800 active:border-b-0 active:translate-y-1'}
-                                    `}
+                                    className={getNumButtonStyle()}
                                 >
                                     {num}
                                 </button>
                             ))}
                         </div>
                         
-                        <div className="grid grid-cols-5 gap-2 lg:gap-3">
-                            <button onClick={() => toggleMultiplier(3)} className={`h-12 lg:h-16 text-white rounded-lg font-bold text-sm lg:text-base transition-colors shadow-sm ${multiplier === 3 ? 'bg-yellow-500 text-black ring-2 ring-white scale-95' : 'bg-yellow-700 hover:bg-yellow-600 border-b-4 border-yellow-900 active:border-b-0 active:translate-y-1'}`}>Triple</button>
-                            <button onClick={() => toggleMultiplier(2)} className={`h-12 lg:h-16 text-white rounded-lg font-bold text-sm lg:text-base transition-colors shadow-sm ${multiplier === 2 ? 'bg-red-500 ring-2 ring-white scale-95' : 'bg-red-700 hover:bg-red-600 border-b-4 border-red-900 active:border-b-0 active:translate-y-1'}`}>Double</button>
-                            <button onClick={() => handleScoreInput(50)} className="h-12 lg:h-16 bg-green-700 hover:bg-green-600 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-green-900 active:border-b-0 active:translate-y-1 shadow-sm">Bull</button>
-                            <button onClick={() => handleScoreInput(0)} className="h-12 lg:h-16 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-sm">0</button>
-                            <button onClick={handleDelete} className="h-12 lg:h-16 bg-slate-600 hover:bg-slate-500 text-white rounded-lg font-semibold border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-sm">削除</button>
+                        {/* 機能キー: こちらも立体感を復活 */}
+                        <div className="grid grid-cols-5 gap-3 lg:gap-4">
+                            {/* Triple */}
+                            <button 
+                                onClick={() => toggleMultiplier(3)} 
+                                className={`
+                                    h-12 lg:h-16 text-white rounded-lg font-bold text-sm lg:text-base transition-all shadow-md active:scale-95 active:border-b-0 active:translate-y-1
+                                    ${multiplier === 3 
+                                        ? 'bg-yellow-500 text-black border-b-4 border-yellow-700 transform translate-y-1 border-b-0 shadow-inner' 
+                                        : 'bg-yellow-600 hover:bg-yellow-500 border-b-4 border-yellow-800'}
+                                `}
+                            >
+                                Triple
+                            </button>
+
+                            {/* Double */}
+                            <button 
+                                onClick={() => toggleMultiplier(2)} 
+                                className={`
+                                    h-12 lg:h-16 text-white rounded-lg font-bold text-sm lg:text-base transition-all shadow-md active:scale-95 active:border-b-0 active:translate-y-1
+                                    ${multiplier === 2 
+                                        ? 'bg-red-500 border-b-4 border-red-700 transform translate-y-1 border-b-0 shadow-inner' 
+                                        : 'bg-red-600 hover:bg-red-500 border-b-4 border-red-800'}
+                                `}
+                            >
+                                Double
+                            </button>
+
+                            <button onClick={() => handleScoreInput(50)} className="h-12 lg:h-16 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-green-800 active:border-b-0 active:translate-y-1 shadow-md">Bull</button>
+                            <button onClick={() => handleScoreInput(0)} className="h-12 lg:h-16 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-lg lg:text-xl border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-md">0</button>
+                            <button onClick={handleDelete} className="h-12 lg:h-16 bg-slate-600 hover:bg-slate-500 text-white rounded-lg font-semibold border-b-4 border-slate-800 active:border-b-0 active:translate-y-1 shadow-md">削除</button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 lg:gap-6 mt-2">
-                            <button onClick={() => { resetRound(); setRemainingScore(startOfRoundScore); setGameState('playing'); }} className="bg-slate-700 hover:bg-slate-600 text-white h-12 lg:h-14 rounded-lg font-semibold text-base transition-colors">
+                        <div className="grid grid-cols-2 gap-4 lg:gap-8 mt-2">
+                            <button onClick={() => { resetRound(); setRemainingScore(startOfRoundScore); setGameState('playing'); }} className="bg-slate-700 hover:bg-slate-600 text-white h-12 lg:h-14 rounded-lg font-semibold text-base transition-colors shadow-lg border-b-4 border-slate-800 active:border-b-0 active:translate-y-1">
                                 ラウンドやり直し
                             </button>
-                            <button onClick={handleNextRound} disabled={dartIndex < 3 && gameState === 'playing'} className="bg-blue-600 hover:bg-blue-500 text-white h-12 lg:h-14 rounded-lg font-bold text-base shadow-lg shadow-blue-900/50 transition-transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                            <button onClick={handleNextRound} disabled={dartIndex < 3 && gameState === 'playing'} className="bg-blue-600 hover:bg-blue-500 text-white h-12 lg:h-14 rounded-lg font-bold text-base shadow-lg shadow-blue-900/50 transition-transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none border-b-4 border-blue-800 active:border-b-0 active:translate-y-1">
                                 {gameState === 'finished' ? '結果を見る' : '次のラウンドへ'}
                             </button>
                         </div>
