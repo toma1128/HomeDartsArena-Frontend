@@ -1,4 +1,4 @@
-import DartsAppDesign from './darts-app-design.tsx';
+import DartsAppDesign from './DartsAppDesign.tsx';
 
 function App() {
   return (
