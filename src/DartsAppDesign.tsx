@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-// ↓ 修正: ファイル名に合わせて 'Sidebar' (大文字) に統一
 import { Sidebar } from './components/Sidebar';
 import { ZeroOneGameScreen } from './components/ZeroOneGameScreen';
+import { CricketGameScreen } from './components/CricketGameScreen'; // ★追加: クリケット画面をインポート
 import { TrendingUp, Clock, ArrowLeft, ChevronRight } from 'lucide-react';
 import type { Screen, GameHistory } from './types';
 
@@ -10,15 +10,15 @@ const DartsAppDesign = () => {
 
     // ゲームプレイ時の設定
     const [gameSettings, setGameSettings] = useState({
-        type: '01',
+        type: '01', // '01' | 'cricket'
         startScore: 501,
         maxRounds: 15,
     });
 
     // null = ゲーム選択トップ画面
     // '01' = 01の設定画面
-    // 'cricket' = クリケットの設定画面（将来用）
-    // 'countup' = カウントアップの設定画面（将来用）
+    // 'cricket' = クリケットの設定画面
+    // 'countup' = カウントアップの設定画面
     const [selectingGameMode, setSelectingGameMode] = useState<'01' | 'cricket' | 'countup' | null>(null);
 
     const gameHistory: GameHistory[] = [
@@ -33,12 +33,20 @@ const DartsAppDesign = () => {
         setSelectingGameMode(null); // 選択モードリセット
     };
 
-  // コンテンツのレンダリング関数（Switch文的な役割）
+    //クリケット
+    const handleStartCricket = () => {
+        setGameSettings({ type: 'cricket', startScore: 0, maxRounds: 15 });
+        setCurrentScreen('game-play');
+        setSelectingGameMode(null);
+    };
+
+  // コンテンツのレンダリング関数
     const renderGameSelectionContent = () => {
         // 1. ゲーム選択トップ画面
         if (selectingGameMode === null) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-200">
+            {/* 01 Game */}
             <button 
                 onClick={() => setSelectingGameMode('01')} 
                 className="bg-slate-800 hover:bg-slate-750 p-8 rounded-xl border-2 border-slate-700 hover:border-blue-600 transition-all text-left group"
@@ -55,18 +63,24 @@ const DartsAppDesign = () => {
                 </div>
             </button>
 
+            {/* Cricket: 有効化 */}
             <button 
-                onClick={() => setSelectingGameMode('cricket')} // 将来的に設定画面へ
-                className="bg-slate-800 hover:bg-slate-750 p-8 rounded-xl border-2 border-slate-700 hover:border-blue-600 transition-all text-left group opacity-60 cursor-not-allowed"
+                onClick={() => setSelectingGameMode('cricket')} 
+                className="bg-slate-800 hover:bg-slate-750 p-8 rounded-xl border-2 border-slate-700 hover:border-blue-600 transition-all text-left group"
             >
                 <div className="flex items-start justify-between mb-4">
-                <div><h3 className="text-2xl font-bold text-white mb-2">Cricket</h3><p className="text-slate-400 mb-4">陣取り合戦 (実装中)</p></div>
+                <div><h3 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors mb-2">Cricket</h3><p className="text-slate-400 mb-4">陣取り合戦 (実装済み)</p></div>
                 <span className="text-5xl">🦗</span>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                    <span className="bg-slate-700 text-slate-300 px-2 py-1 rounded text-xs">Standard</span>
+                    <ChevronRight size={16} className="text-slate-500 ml-auto" />
                 </div>
             </button>
 
+            {/* Count Up */}
             <button 
-                onClick={() => setSelectingGameMode('countup')} // 将来的に設定画面へ
+                onClick={() => setSelectingGameMode('countup')} 
                 className="bg-slate-800 hover:bg-slate-750 p-8 rounded-xl border-2 border-slate-700 hover:border-blue-600 transition-all text-left group opacity-60 cursor-not-allowed"
             >
                 <div className="flex items-start justify-between mb-4">
@@ -106,12 +120,23 @@ const DartsAppDesign = () => {
         );
         }
 
-        // 3. 「クリケット」の設定画面
+        // 3. 「クリケット」の設定画面 (有効化)
         if (selectingGameMode === 'cricket') {
         return (
-            <div>
-            <button onClick={() => setSelectingGameMode(null)} className="flex items-center text-slate-400 mb-4"><ArrowLeft size={20} className="mr-2" />戻る</button>
-            <p className="text-white">クリケットの設定画面（準備中）</p>
+            <div className="animate-in fade-in slide-in-from-right-8 duration-200">
+            <button onClick={() => setSelectingGameMode(null)} className="flex items-center text-slate-400 hover:text-white mb-6 transition-colors"><ArrowLeft size={20} className="mr-2" /> ゲーム一覧に戻る</button>
+            <h3 className="text-xl font-bold text-white mb-4">モードを選択</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button onClick={handleStartCricket} className="bg-slate-800 hover:bg-blue-900/30 border-2 border-slate-700 hover:border-blue-500 p-8 rounded-xl text-left transition-all group">
+                    <h3 className="text-2xl font-bold text-white group-hover:text-blue-400 mb-2">Standard Cricket</h3>
+                    <p className="text-slate-400 text-sm">通常のクリケット。エリアをオープンして得点を稼ごう。</p>
+                    <div className="mt-4"><span className="text-slate-500 text-xs bg-slate-900 px-2 py-1 rounded">15 Rounds</span></div>
+                </button>
+                <button className="bg-slate-800 border-2 border-slate-700 p-8 rounded-xl text-left opacity-50 cursor-not-allowed">
+                    <h3 className="text-2xl font-bold text-white mb-2">Hidden Cricket</h3>
+                    <p className="text-slate-400 text-sm">ターゲットが隠されたクリケット (準備中)</p>
+                </button>
+            </div>
             </div>
         );
         }
@@ -138,6 +163,7 @@ const DartsAppDesign = () => {
             <div className="p-8 flex-1 overflow-auto">
                 <div className="max-w-7xl mx-auto">
                 <h2 className="text-3xl font-bold text-white mb-8">ダッシュボード</h2>
+                {/* 統計カードなど (省略なし) */}
                 <div className="grid grid-cols-4 gap-6 mb-8">
                     <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-6 rounded-xl shadow-lg">
                     <p className="text-blue-100 text-sm mb-2">現在のレート</p>
@@ -174,22 +200,31 @@ const DartsAppDesign = () => {
             <div className="p-8 flex-1 overflow-auto">
                 <div className="max-w-5xl mx-auto">
                 <h2 className="text-3xl font-bold text-white mb-8">ゲームを選択</h2>
-                {/* Switch文的なレンダリング関数を呼び出し */}
                 {renderGameSelectionContent()}
                 </div>
             </div>
             )}
 
-            {/* ゲームプレイ画面 */}
+            {/* ゲームプレイ画面: 01 と クリケット を出し分け */}
             {currentScreen === 'game-play' && (
-            <ZeroOneGameScreen
-                initialScore={gameSettings.startScore}
-                maxRounds={gameSettings.maxRounds}
-                onBack={() => {
-                setCurrentScreen('game-select');
-                setSelectingGameMode('01'); // 戻った時に01設定画面のままにする
-                }}
-            />
+                gameSettings.type === '01' ? (
+                    <ZeroOneGameScreen
+                        initialScore={gameSettings.startScore}
+                        maxRounds={gameSettings.maxRounds}
+                        onBack={() => {
+                            setCurrentScreen('game-select');
+                            setSelectingGameMode('01');
+                        }}
+                    />
+                ) : (
+                    <CricketGameScreen 
+                        maxRounds={gameSettings.maxRounds}
+                        onBack={() => {
+                            setCurrentScreen('game-select');
+                            setSelectingGameMode('cricket');
+                        }}
+                    />
+                )
             )}
 
             {/* 対戦モード */}
