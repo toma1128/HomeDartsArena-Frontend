@@ -167,8 +167,8 @@ const DartsAppDesign = () => {
                 <div className="grid grid-cols-4 gap-6 mb-8">
                     <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-6 rounded-xl shadow-lg">
                     <p className="text-blue-100 text-sm mb-2">現在のレート</p>
-                    <p className="text-5xl font-bold text-white mb-2">8.5</p>
-                    <div className="flex items-center text-green-300"><TrendingUp size={16} className="mr-1" /><span className="text-sm">+0.3 今週</span></div>
+                    <p className="text-5xl font-bold text-white mb-2">0</p>
+                    <div className="flex items-center text-green-300"><TrendingUp size={16} className="mr-1" /><span className="text-sm">+0.3 本日</span></div>
                     </div>
                     <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
                     <p className="text-slate-400 text-sm mb-2">総ゲーム数</p>
