@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ZeroOneGameScreen } from './components/ZeroOneGameScreen';
-import { CricketGameScreen } from './components/CricketGameScreen'; // ★追加: クリケット画面をインポート
+import { CricketGameScreen } from './components/CricketGameScreen';
 import { TrendingUp, Clock, ArrowLeft, ChevronRight } from 'lucide-react';
 import type { Screen, GameHistory } from './types';
 
