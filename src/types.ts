@@ -1,4 +1,4 @@
-export type Screen = 'home' | 'game-select' | 'game-play' | 'match';
+export type Screen = 'home' | 'game-select' | 'game-play' | 'match' | 'signup' | 'login';
 
 // ゲーム履歴の型
 export interface GameHistory {
