@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ZeroOneGameScreen } from './components/ZeroOneGameScreen';
 import { CricketGameScreen } from './components/CricketGameScreen';
+// ↓ 1. 新規登録画面をインポート
+import { SignUpScreen } from './components/SignUpScreen';
 import { TrendingUp, Clock, ArrowLeft, ChevronRight, LogIn, UserPlus } from 'lucide-react';
 import type { Screen, GameHistory } from './types';
 
 const DartsAppDesign = () => {
+    // Screen 型に 'signup' が追加されている前提です (types.ts)
     const [currentScreen, setCurrentScreen] = useState<Screen>('home');
 
     // ログイン状態管理 (初期値 false: 未ログイン)
@@ -171,6 +174,8 @@ const DartsAppDesign = () => {
                                 ログイン
                             </button>
                             <button 
+                                // ↓ 2. クリックイベントを追加
+                                onClick={() => setCurrentScreen('signup')}
                                 className="flex-1 flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-lg transition-all border border-slate-600 hover:border-slate-500 hover:scale-105"
                             >
                                 <UserPlus size={24} />
@@ -222,6 +227,18 @@ const DartsAppDesign = () => {
                 )}
                 </div>
             </div>
+            )}
+
+            {currentScreen === 'signup' && (
+                <div className="flex-1 overflow-auto bg-slate-900">
+                    <SignUpScreen 
+                        onBack={() => setCurrentScreen('home')}
+                        onSignUp={() => {
+                            setIsLoggedIn(true); // 登録完了したらログイン状態にしてホームへ
+                            setCurrentScreen('home');
+                        }}
+                    />
+                </div>
             )}
 
             {/* ゲーム選択画面 */}
